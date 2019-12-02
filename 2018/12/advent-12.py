@@ -1,5 +1,5 @@
 import itertools
-#from timeit import default_timer as timer
+#import matplotlib.pyplot as plt
 
 class Pot:
     def __init__(self, value='.', placement=None):
@@ -185,9 +185,13 @@ initial = [char for char in lines[0].split()[2]]
 rules = [line for line in lines[1:] if line is not '']
 
 underground = RowofPots(initial,rules)
-#with open("debug.txt", "w") as debug:
-#start = timer()
-for g in underground.over_time(20):
-    print(f"{underground.sum_of_plant_nos(g)}")
-#end = timer()
-#print(f"Done in {end-start}!")
+count_per_round = []
+for g in underground.over_time(200):
+    count_per_round.append(underground.sum_of_plant_nos(g))
+differences = [(x - count_per_round[i-1]) for i,x in enumerate(count_per_round) if i>0]
+#plot = plt.figure()
+#plt.plot(range(1,200),differences,'ro',range(1,200),differences,'k')
+#plt.xlabel('generation')
+#plt.ylabel('difference in plant sum')
+#plt.show()
+print((50000000000-142)*32+4945)
