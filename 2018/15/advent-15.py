@@ -1,3 +1,4 @@
+from operator import itemgetter
 from collections import OrderedDict
 
 class Unit:
@@ -6,6 +7,9 @@ class Unit:
         self.ap = 3
         self.hp = 200
         self.location = loc
+    
+    def __repr__(self):
+        return f"Unit({self.type}:{self.hp})"
 
     def attacked_by(self,enemy,grid):
         self.hp -= enemy.ap
@@ -25,24 +29,25 @@ class Cave:
             self.grid.append(row)
         self.max_row = len(self.grid)
         self.max_column = len(self.grid[0])
-        units = {}
+        self.units = {}
         self.elves = {}
         self.goblins = {}
         for i, row in enumerate(self.grid):
             for j, column in enumerate(row):
                 if column == 'G':
-                    units[(i,j)] = 'G'
+                    self.units[(i,j)] = 'G'
                     self.goblins[(i,j)] = Unit('G',(i,j))
                 elif column == 'E':
-                    units[(i,j)] = 'E'
+                    self.units[(i,j)] = 'E'
                     self.elves[(i,j)] = Unit('E',(i,j))
-        self.units = OrderedDict(sorted(units.items()))
     
     def __repr__(self):
         return f"Cave(Dim:{self.max_row}x{self.max_column},Units:{len(self.units)})"
 
     def __str__(self):
         lines = [''.join(row) for row in self.grid]
+        lines.append(f"Goblins: {self.goblins}")
+        lines.append(f"Elves: {self.elves}")
         return '\n'.join(lines)
     
     def is_open(self,square:tuple):
@@ -64,31 +69,32 @@ class Cave:
                 open_squares.append(s)
         return open_squares
 
-    def attack_range(self,who:Unit,square:tuple):
+    def attack_range(self,who:Unit):
         attack_squares = []
         if who.type == 'E':
             they = 'G'
         elif who.type == 'G':
             they = 'E'
-        i = square[0]
-        j = square[1]
+        i = who.location[0]
+        j = who.location[1]
         try_squares = [(i-1,j),(i,j-1),(i,j+1),(i+1,j)]
         for s in try_squares:
             if s in self.units and self.units[s] == they:
                 attack_squares.append(s)
         return attack_squares
 
-    def choose_attackee(self,who:Unit,square:tuple):
+    def choose_attackee(self,who:Unit):
         if who.type == 'E':
             enemies = self.goblins
         elif who.type == 'G':
             enemies = self.elves
-        targets = self.attack_range(who,square)
+        targets = self.attack_range(who)
         comp_list = []
         if targets != []:
             for t in targets:
-                comp_list.append((enemies[t].hp,t,enemies[t]))
-        comp_list.sort
+                victim = enemies[t]
+                comp_list.append((victim.hp,t,victim))
+        comp_list.sort(key=itemgetter(0,1))
         return comp_list[0][2]
 
     def target_ranges(self,targets:list):
@@ -114,10 +120,16 @@ class Cave:
             target_cells = self.target_ranges(self.goblins)
         elif who.type == 'G':
             target_cells = self.target_ranges(self.elves)
-        paths = [self.find_path(start,x) for x in target_cells]
-        steps = [(len(x),x[-1],x[1]) for x in paths if x is not None]
-        steps.sort()
-        return steps[0][2]
+        if target_cells == []:
+            return None
+        else:
+            paths = [self.find_path(start,x) for x in target_cells]
+            steps = [(len(x),x[-1],x[1]) for x in paths if x is not None]
+            if steps == []:
+                return None
+            else:
+                steps.sort()
+                return steps[0][2]
     
     def byebye(self,square:tuple):
         removed_unit = self.units.pop(square)
@@ -127,32 +139,59 @@ class Cave:
             del self.goblins[square]
         self.grid[square[0]][square[1]] = '.'
     
-    def move(self,etc.):
-        #do later
+    def move(self,source:tuple,destination:tuple):
+        rep = self.units.pop(source)
+        if rep == 'G':
+            group = self.goblins
+        elif rep == 'E':
+            group = self.elves
+        unit = group.pop(source)
+        unit.location = destination
+        self.grid[source[0]][source[1]] = '.'
+        self.grid[destination[0]][destination[1]] = rep
+        self.units[destination] = rep
+        group[destination] = unit
 
-    def rounds(self):
+    def rounds(self,n=1000):
         round_n = 0
-        while True:
-            yield self
+        while round_n < n:
+            yield self, round_n
             #start round
             round_n += 1
-            for i in self.units:
+            units = sorted([(k,v) for k,v in self.units.items()])
+            for i in units:
                 #look for targets
-                if self.units[i] == 'E':
-                    unit = self.elves[i]
+                if i[1] == 'E':
+                    unit = self.elves[i[0]]
                     enemies = self.goblins
-                elif self.units[i] == 'G':
-                    unit = self.goblins[i]
+                elif i[1] == 'G':
+                    unit = self.goblins[i[0]]
                     enemies = self.elves
                 if enemies == {}:
                     break
-                #check if in range
-                #move if not
-                #attack if yes
+                #move (if necessary)
+                if self.attack_range(unit) == []:
+                    next_step = self.choose_target_cell(unit,unit.location)
+                    if next_step is not None:
+                        self.move(unit.location,next_step)
+                #attack (if possible)
+                if self.attack_range(unit) != []:
+                    victim = self.choose_attackee(unit)
+                    victim.attacked_by(unit,self)
             if self.goblins == {} or self.elves == {}:
                 break
-        yield self
+        yield self, round_n
+    
+    def outcome(self):
+        for r,n in self.rounds():
+            round_no = n
+        if cave.elves == {}:
+            winners = cave.goblins
+        elif cave.goblins == {}:
+            winners = cave.elves
+        remaining_hp = sum([v.hp for k,v in winners.items()])
+        return remaining_hp*round_no
 
 cave = Cave("test-1.txt")
 #cave = Cave("input.txt")
-print(cave.choose_target_cell('E',(1,1)))
+print(cave.outcome())
