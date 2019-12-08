@@ -5,6 +5,7 @@ class Intcode:
     def __init__(self,initial:list):
         self.memory = initial
         self.pointer = 0
+        self.inputs = []
 
     def run(self,inputs):
         outputs = []
@@ -31,7 +32,10 @@ class Intcode:
                     elif code == 2:
                         next_ip = self.multiplication(modes)
                     elif code == 3:
-                        inp = inputs.pop()
+                        if inputs != []:
+                            inp = inputs.pop()
+                        else:
+                            break
                         next_ip = self.from_input(inp)
                     elif code == 4:
                         output, next_ip = self.output(modes)
@@ -45,6 +49,7 @@ class Intcode:
                     elif code == 8:
                         next_ip = self.equals(modes)
                     self.pointer = next_ip
+        self.inputs = inputs
         return outputs
 
     @staticmethod
@@ -161,22 +166,52 @@ class AmpChain:
     def runthrough(self,settings:tuple,initial:int):
         o = initial
         for i, a in enumerate(self.amps):
-            print(i,a,o)
+            #print(i,a,o)
             o = a.run([o,settings[i]])[0]
         return o
+    
+    def feedloop(self,settings:tuple,initial:int):
+        still_running = set(self.amps)
+        inputs = [[settings[i]] for i,_ in enumerate(self.amps)]
+        print(inputs)
+        real_output = initial
+        while still_running != set():
+            inputs[0].insert(0,real_output)
+            for i, a in enumerate(self.amps):
+                print(f"Amp #{i}, Input: {inputs[i]}")
+                o = a.run(inputs[i])
+                if o == []:
+                    print(f"Halted.")
+                    still_running.discard(a)
+                    continue
+                else:
+                    o = o[0]
+                    print(f"Output: {o}")
+                    inputs[i] = a.inputs
+                    if i == 4:
+                        real_output = o
+                    else:
+                        inputs[i+1].insert(0,o)
+            print(f"These amps are still running: {still_running}")
+        return real_output
 
-#with open("test.txt") as f:
-with open("input.txt") as f:
+
+
+with open("test.txt") as f:
+#with open("input.txt") as f:
     content = f.readlines()
 
 initial = [int(x) for line in content for x in line.split(',')]
 
-
 #---part one---#
-finals = []
-for setting in permutations(range(5)):
-    amps = AmpChain(initial)
-    thrust = amps.runthrough(setting,0)
-    finals.append((setting,thrust))
+#finals = []
+#for setting in permutations(range(5)):
+#    amps = AmpChain(initial)
+#    thrust = amps.runthrough(setting,0)
+#    finals.append((setting,thrust))
 
-print(max(finals,key=itemgetter(1)))
+#print(max(finals,key=itemgetter(1)))
+
+#---part two---#
+amps = AmpChain(initial)
+print(amps.feedloop((9,8,7,6,5),0))
