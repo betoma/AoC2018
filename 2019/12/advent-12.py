@@ -1,4 +1,5 @@
 from itertools import count, combinations
+from math import gcd
 
 class Moon:
     def __init__(self,x,y,z):
@@ -62,7 +63,36 @@ class Planet:
         return sum([x.energy() for x in self.moons])
 
 jupiter = Planet("input.txt")
+
+#---part one---#
 for i,t in zip(count(),jupiter.sim(1000)):
     if i == 1000:
         print(t)
         print(f"Total Energy: {jupiter.total_energy()}")
+
+#---part two---#
+def repeat(max_iter:int,axis:str):
+    if axis == 'x':
+        v = 0
+    elif axis == 'y':
+        v = 1
+    elif axis == 'z':
+        v = 2
+    steps = {}
+    for i, t in zip(count(),jupiter.sim(max_iter)):
+        this_step = tuple([(x.pos[v],x.vel[v]) for x in t.moons])
+        if this_step in steps:
+            loop_end = i
+            break
+        else:
+            steps[this_step] = i
+    try:
+        return loop_end
+    except NameError:
+        return None
+
+x_cycle = repeat(1000000,'x')
+y_cycle = repeat(1000000,'y')
+z_cycle = repeat(1000000,'z')
+xy = abs(x_cycle*y_cycle)//gcd(x_cycle,y_cycle)
+print(abs(xy*z_cycle)//gcd(xy,z_cycle))
