@@ -1,8 +1,8 @@
 from collections import defaultdict
 
-#with open("test-input.txt") as file:
+# with open("test-input.txt") as file:
 with open("input.txt") as file:
-    content = file.read().split('\n')
+    content = file.read().split("\n")
 
 all_steps = list()
 conditions = defaultdict(set)

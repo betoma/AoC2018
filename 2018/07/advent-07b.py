@@ -1,14 +1,41 @@
 from collections import defaultdict
 
-#with open("test-input.txt") as file:
+# with open("test-input.txt") as file:
 with open("input.txt") as file:
-    content = file.read().split('\n')
+    content = file.read().split("\n")
 
 # Stuff that needs to change depending on test or real input
-time_diff = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8, "I": 9, "J": 10, "K": 11, "L": 12, "M": 13, "N": 14, "O": 15, "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20, "U": 21, "V": 22, "W": 23, "X": 24, "Y": 25, "Z": 26}
+time_diff = {
+    "A": 1,
+    "B": 2,
+    "C": 3,
+    "D": 4,
+    "E": 5,
+    "F": 6,
+    "G": 7,
+    "H": 8,
+    "I": 9,
+    "J": 10,
+    "K": 11,
+    "L": 12,
+    "M": 13,
+    "N": 14,
+    "O": 15,
+    "P": 16,
+    "Q": 17,
+    "R": 18,
+    "S": 19,
+    "T": 20,
+    "U": 21,
+    "V": 22,
+    "W": 23,
+    "X": 24,
+    "Y": 25,
+    "Z": 26,
+}
 buffer = 60
 workers = ["worker_1", "worker_2", "worker_3", "worker_4", "worker_5"]
-max_time = 351+(60*26)
+max_time = 351 + (60 * 26)
 
 all_steps = list()
 conditions = defaultdict(set)
@@ -32,7 +59,7 @@ time_left = dict()
 # initialize workers as having no task
 current_task = {worker: "not_busy" for worker in workers}
 
-for i in range(0,max_time):
+for i in range(0, max_time):
     no_of_seconds = i
     if i == 0:
         for letter in all_steps:
@@ -69,9 +96,9 @@ for i in range(0,max_time):
             time_left[new_step] = time_diff[new_step] + buffer
             steps_left.remove(new_step)
             available.remove(new_step)
-    #print(f"At second {no_of_seconds}, state is:")
-    #print(current_task)
-    #print(completed)
+    # print(f"At second {no_of_seconds}, state is:")
+    # print(current_task)
+    # print(completed)
     if steps_left == set() and in_progress == set():
         assert completed == set(all_steps), "You've lost some steps, hon."
         break

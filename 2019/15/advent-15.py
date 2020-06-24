@@ -1,25 +1,29 @@
 from intcode import Intcode
 from collections import deque
 
-class RepairDroid():
-    def __init__(self,filename):
+
+class RepairDroid:
+    def __init__(self, filename):
         self.discovered = set()
         self.parent = {}
         self.edges = {}
         self.way_in = {}
-        self.current_position = (0,0)
+        self.current_position = (0, 0)
         self.program = Intcode.read_program(filename)
 
-    def get_loc(self,n:int):
+    def get_loc(self, n: int):
         if n == 1:
-            direction = (0,1)
+            direction = (0, 1)
         elif n == 2:
-            direction = (0,-1)
+            direction = (0, -1)
         elif n == 3:
-            direction = (-1,0)
+            direction = (-1, 0)
         elif n == 4:
-            direction = (1,0)
-        return (self.current_position[0]+direction[0],self.current_position[1]+direction[1])
+            direction = (1, 0)
+        return (
+            self.current_position[0] + direction[0],
+            self.current_position[1] + direction[1],
+        )
 
     @staticmethod
     def go_back(n):
@@ -35,7 +39,7 @@ class RepairDroid():
     def test_edge(self, n):
         movement = self.program.run_program([n])
         out = next(movement)
-        #print(f"{n}: {out}")
+        # print(f"{n}: {out}")
         if out == 0:
             return False
         elif out == 1:
@@ -49,30 +53,30 @@ class RepairDroid():
 
     def step_back(self):
         way = self.way_in[self.current_position]
-        #print(way)
+        # print(way)
         move = self.go_back(way)
-       #print(move)
+        # print(move)
         movement = self.program.run_program([move])
         back = next(movement)
-        #print(back)
+        # print(back)
         assert back == 1
 
     def get_edges(self):
         edges = []
-        for n in range(1,5):
+        for n in range(1, 5):
             cell = self.get_loc(n)
             in_cell = self.test_edge(n)
             if in_cell:
                 if in_cell == "WIN":
                     return True, (cell, n)
                 else:
-                    edges.append((cell,n))
-        #print(edges)
+                    edges.append((cell, n))
+        # print(edges)
         return False, edges
 
     def find_o2(self):
         while True:
-            #print(self.way_in)
+            # print(self.way_in)
             if self.current_position not in self.discovered:
                 win, edges = self.get_edges()
                 self.discovered.add(self.current_position)
@@ -82,7 +86,7 @@ class RepairDroid():
                     return edges[0]
                 else:
                     new_edges = [e for e in edges if e[0] not in self.discovered]
-                    #print(new_edges)
+                    # print(new_edges)
                     self.edges[self.current_position] = new_edges
                     if new_edges:
                         for e in new_edges:
@@ -102,9 +106,9 @@ class RepairDroid():
                 self.step_back()
             print(self.current_position)
 
-    def reconstruct_chain(self,position):
+    def reconstruct_chain(self, position):
         chain = []
-        if position != (0,0):
+        if position != (0, 0):
             papa = self.parent[position]
             chain.append(papa)
             mama = self.reconstruct_chain(papa)

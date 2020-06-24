@@ -1,9 +1,10 @@
 def mass_calc(n: int):
-    mass = (n//3)-2
+    mass = (n // 3) - 2
     if mass > 0:
         return mass
     else:
         return 0
+
 
 def fuel_calc(n: int):
     mass = 0
@@ -12,6 +13,7 @@ def fuel_calc(n: int):
         mass += further_fuel_needed
         further_fuel_needed = mass_calc(further_fuel_needed)
     return mass
+
 
 with open("input.txt") as f:
     content = f.readlines()
