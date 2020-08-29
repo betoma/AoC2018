@@ -3,9 +3,7 @@ from tqdm import tqdm
 
 
 class FFT:
-    def __init__(self, filename: str):
-        with open(filename) as f:
-            content = f.read().strip()
+    def __init__(self, content: str):
         self.list = [int(x) for x in content]
         self.length = len(self.list)
         self.pattern = [0, 1, 0, -1]
@@ -32,7 +30,18 @@ class FFT:
 
 
 # ---part one---#
-algo = FFT("input.txt")
+with open("input.txt", "r") as f:
+    c = f.read().strip()
+
+algo = FFT(c)
 for _ in algo.phases(100):
     pass
 print(algo.list[:8])
+
+# -- part two -- #
+# algo2 = FFT(c * 10000)
+# start = int(c[:7])
+# for _ in algo2.phases(100):
+#     pass
+# print(algo2.list[start : start + 8])
+# way too slow, gotta re-do this whole shebang
