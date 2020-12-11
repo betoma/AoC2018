@@ -19,13 +19,10 @@ class BoardingPass:
                 columns = (halfway, columns[1])
         self.row = rows[0]
         self.column = columns[0]
-        self.id = self.calc_seat_id(self.row, self.column)
 
-    def get_seat_location(self):
-        return self.row, self.column
-
-    def get_seat_id(self):
-        return self.id
+    @property
+    def id(self):
+        return self.calc_seat_id(self.row, self.column)
 
     @staticmethod
     def calc_seat_id(row: int, col: int):
@@ -39,7 +36,7 @@ tickets = [BoardingPass(x.strip()) for x in contents]
 
 # part one
 
-ids = [t.get_seat_id() for t in tickets]
+ids = [t.id for t in tickets]
 print(max(ids))
 
 # part two
